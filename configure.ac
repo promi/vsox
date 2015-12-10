@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Created by Anjuta application wizard.
 
-AC_INIT(vsox, 0.1)
+AC_INIT(vsox, 0.2)
 
 AC_CONFIG_HEADERS([config.h])
 
@@ -11,17 +11,12 @@ AM_SILENT_RULES([yes])
 
 AC_PROG_CC
 
-
-
-
 LT_INIT
 
 dnl Check for vala
 AM_PROG_VALAC([0.10.0])
 
-
-PKG_CHECK_MODULES(VSOX, [gtk+-3.0 ])
-
+PKG_CHECK_MODULES(VSOX, [gtk+-3.0 gee-0.8])
 
 AC_OUTPUT([
 Makefile
