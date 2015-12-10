@@ -19,12 +19,14 @@
 
 public class Effect {
 	public string name;
-	public Gtk.Scale scale;
-
-	public Effect (string name, Gtk.Scale scale) {
-		this.name  = name;
-		this.scale = scale;
-	}
+	public Gtk.Scale? scale1;
+	public Gtk.Scale? gain_in_scale;
+	public Gtk.Scale? gain_out_scale;
+	public Gtk.Scale? delay_scale;
+	public Gtk.Scale? decay_scale;
+	public Gtk.Scale? speed_scale;
+	public Gtk.Scale? depth_scale;
+	public Gtk.ToggleButton? sinus_triangle_toggle_button;
 }
 
 public class Main : Object 
@@ -103,17 +105,31 @@ public class Main : Object
 	public Gee.ArrayList<string> get_sox_effects_cmd_args () {
 		var l = new Gee.ArrayList<string> ();
 		foreach (var effect in effects) {
+			l.add (effect.name); 
 			if (effect.name == "pitch") {
-				l.add ("pitch"); 
-				l.add (effect.scale.get_value ().to_string ());
+				l.add (effect.scale1.get_value ().to_string ());
 			}
 			else if (effect.name == "treble") {
-				l.add ("treble"); 
-				l.add (effect.scale.get_value ().to_string ());
+				l.add (effect.scale1.get_value ().to_string ());
 			}
 			else if (effect.name == "bass") {
-				l.add ("bass"); 
-				l.add (effect.scale.get_value ().to_string ());
+				l.add (effect.scale1.get_value ().to_string ());
+			}
+			else if (effect.name == "chorus") {
+				// gain-in 0.7
+				l.add (effect.gain_in_scale.get_value ().to_string ());
+				// gain-out 0.9
+				l.add (effect.gain_out_scale.get_value ().to_string ());
+				// delay 55
+				l.add (effect.delay_scale.get_value ().to_string ()); 
+				// decay 0.4
+				l.add (effect.decay_scale.get_value ().to_string ());
+				// speed 0.25
+				l.add (effect.speed_scale.get_value ().to_string ());
+				// depth 2
+				l.add (effect.depth_scale.get_value ().to_string ());
+				// sinus <-> triangle -s -t
+				l.add (effect.sinus_triangle_toggle_button.active ? "-t" : "-s");
 			}
 		}
 		return l;
@@ -138,6 +154,8 @@ public class Main : Object
 			liststore1.@set (iter, 0, "Treble", 1, "treble");
 			liststore1.append (out iter);
 			liststore1.@set (iter, 0, "Bass", 1, "bass");
+			liststore1.append (out iter);
+			liststore1.@set (iter, 0, "Chorus", 1, "chorus");
 			window.show_all ();
 			load_soxnull_sink_sync ();
 		} 
@@ -166,35 +184,76 @@ public class Main : Object
 		if (effect_name == "")
 			return;
 		effects_grid.insert_row (effects.size + 1);
-		Gtk.Scale settings = null;
+		var effect = new Effect ();
+		effect.name = effect_name;
+		Gtk.Widget container = null;
 		string label_text = "";
 		if (effect_name == "pitch") {
-			label_text = "Pitch";
-			Gtk.Scale scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
-			scale.set_range (-1000, 1000);
-			scale.hexpand = true;
-			settings = scale;
+			label_text = "Pitch (cents)";
+			effect.scale1 = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.scale1.set_range (-1000, 1000);
+			effect.scale1.hexpand = true;
+			container = effect.scale1;
 		}
 		else if (effect_name == "treble") {
-			label_text = "Treble";
-			Gtk.Scale scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
-			scale.set_range (-20, 20);
-			scale.hexpand = true;
-			settings = scale;
+			label_text = "Treble (dB)";
+			effect.scale1 = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.scale1.set_range (-20, 20);
+			effect.scale1.hexpand = true;
+			container = effect.scale1;
 		}
 		else if (effect_name == "bass") {
-			label_text = "Bass";
-			Gtk.Scale scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
-			scale.set_range (-20, 20);
-			scale.hexpand = true;
-			settings = scale;
+			label_text = "Bass (dB)";
+			effect.scale1 = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.scale1.set_range (-20, 20);
+			effect.scale1.hexpand = true;
+			container = effect.scale1;
+		}
+		else if (effect_name == "chorus") {
+			label_text = "Chorus";
+			var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+			effect.gain_in_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.gain_in_scale.set_range (0, 1);
+			effect.gain_in_scale.set_value (0.7);
+			effect.gain_in_scale.hexpand = true;
+			box.pack_start (effect.gain_in_scale);
+			effect.gain_out_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.gain_out_scale.set_range (0, 1);
+			effect.gain_out_scale.set_value (0.9);
+			effect.gain_out_scale.hexpand = true;
+			box.pack_start (effect.gain_out_scale);
+			effect.delay_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.delay_scale.set_range (0, 200);
+			effect.delay_scale.set_value (55);
+			effect.delay_scale.hexpand = true;
+			box.pack_start (effect.delay_scale);
+			effect.decay_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.decay_scale.set_range (0, 1);
+			effect.decay_scale.set_value (0.4);
+			effect.decay_scale.hexpand = true;
+			box.pack_start (effect.decay_scale);
+			effect.speed_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.speed_scale.set_range (0, 1);
+			effect.speed_scale.set_value (0.25);
+			effect.speed_scale.hexpand = true;
+			box.pack_start (effect.speed_scale);
+			effect.depth_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.depth_scale.set_range (0, 10);
+			effect.depth_scale.set_value (2);
+			effect.depth_scale.hexpand = true;
+			box.pack_start (effect.depth_scale);
+			effect.sinus_triangle_toggle_button = new Gtk.ToggleButton ();
+			effect.sinus_triangle_toggle_button.set_label ("Triangle");
+			// effect.sinus_triangle_toggle_button.hexpand = false;
+			box.pack_start (effect.sinus_triangle_toggle_button);
+			container = box;
 		}
 		Gtk.Label label = new Gtk.Label (label_text);
 		label.halign = Gtk.Align.START;
 		effects_grid.attach (label, 1, effects.size + 1);
-		effects_grid.attach (settings, 2, effects.size + 1);
+		effects_grid.attach (container, 2, effects.size + 1);
 		effects_grid.show_all ();
-		effects.add (new Effect (effect_name, settings));
+		effects.add (effect);
 	}
 
 	[CCode (instance_pos = -1)]
