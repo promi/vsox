@@ -27,6 +27,13 @@ public class Effect {
 	public Gtk.Scale? speed_scale;
 	public Gtk.Scale? depth_scale;
 	public Gtk.ToggleButton? sinus_triangle_toggle_button;
+	public Gtk.ToggleButton? wet_only_toggle_button;
+	public Gtk.Scale reverberance_scale;
+	public Gtk.Scale hf_damping_scale;
+	public Gtk.Scale room_scale_scale;
+	public Gtk.Scale stereo_depth_scale;
+	public Gtk.Scale pre_delay_scale;
+	public Gtk.Scale wet_gain;
 }
 
 public class Main : Object 
@@ -131,6 +138,16 @@ public class Main : Object
 				// sinus <-> triangle -s -t
 				l.add (effect.sinus_triangle_toggle_button.active ? "-t" : "-s");
 			}
+			else if (effect.name == "echo") {
+				// gain-in 0.8
+				l.add (effect.gain_in_scale.get_value ().to_string ());
+				// gain-out 0.88
+				l.add (effect.gain_out_scale.get_value ().to_string ());
+				// delay 60
+				l.add (effect.delay_scale.get_value ().to_string ()); 
+				// decay 0.4
+				l.add (effect.decay_scale.get_value ().to_string ());
+			}
 		}
 		return l;
 	}
@@ -156,6 +173,14 @@ public class Main : Object
 			liststore1.@set (iter, 0, "Bass", 1, "bass");
 			liststore1.append (out iter);
 			liststore1.@set (iter, 0, "Chorus", 1, "chorus");
+			liststore1.append (out iter);
+			liststore1.@set (iter, 0, "Echo", 1, "echo");
+			liststore1.append (out iter);
+			liststore1.@set (iter, 0, "Flanger", 1, "flanger");
+			liststore1.append (out iter);
+			liststore1.@set (iter, 0, "Overdrive", 1, "overdrive");
+			liststore1.append (out iter);
+			liststore1.@set (iter, 0, "Reverb", 1, "reverb");
 			window.show_all ();
 			load_soxnull_sink_sync ();
 		} 
@@ -223,7 +248,7 @@ public class Main : Object
 			effect.gain_out_scale.hexpand = true;
 			box.pack_start (effect.gain_out_scale);
 			effect.delay_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
-			effect.delay_scale.set_range (0, 200);
+			effect.delay_scale.set_range (0, 99);
 			effect.delay_scale.set_value (55);
 			effect.delay_scale.hexpand = true;
 			box.pack_start (effect.delay_scale);
@@ -247,6 +272,43 @@ public class Main : Object
 			// effect.sinus_triangle_toggle_button.hexpand = false;
 			box.pack_start (effect.sinus_triangle_toggle_button);
 			container = box;
+		}
+		else if (effect_name == "echo") {
+			label_text = "Echo";
+			var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+			effect.gain_in_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.gain_in_scale.set_range (0, 1);
+			effect.gain_in_scale.set_value (0.8);
+			effect.gain_in_scale.hexpand = true;
+			box.pack_start (effect.gain_in_scale);
+			effect.gain_out_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.gain_out_scale.set_range (0, 1);
+			effect.gain_out_scale.set_value (0.88);
+			effect.gain_out_scale.hexpand = true;
+			box.pack_start (effect.gain_out_scale);
+			effect.delay_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.delay_scale.set_range (0, 400);
+			effect.delay_scale.set_value (60);
+			effect.delay_scale.hexpand = true;
+			box.pack_start (effect.delay_scale);
+			effect.decay_scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+			effect.decay_scale.set_range (0, 1);
+			effect.decay_scale.set_value (0.4);
+			effect.decay_scale.hexpand = true;
+			box.pack_start (effect.decay_scale);
+			container = box;
+		}
+		else if (effect_name == "flanger") {
+			label_text = "Flanger";
+			container = new Gtk.Label ("Dummy");
+		}
+		else if (effect_name == "overdrive") {
+			label_text = "Overdrive";
+			container = new Gtk.Label ("Dummy");
+		}
+		else if (effect_name == "reverb") {
+			label_text = "Reverb";
+			container = new Gtk.Label ("Dummy");
 		}
 		Gtk.Label label = new Gtk.Label (label_text);
 		label.halign = Gtk.Align.START;
