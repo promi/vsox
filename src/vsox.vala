@@ -56,7 +56,7 @@ public class Main : Object
 
 	public void close_sox_process () {
 		if (sox_pid != null) {
-			Posix.kill ((!)sox_pid, Posix.SIGINT);
+			Posix.kill ((!)sox_pid, Posix.Signal.INT);
 			Process.close_pid ((!)sox_pid);
 		}
 		sox_pid = null;
